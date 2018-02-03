@@ -36,6 +36,10 @@ class UserManager:
         user = User.query.filter_by(uname=uname).first()
         if user:
             user.change_password(newpassword)
+            db.session.commit()
+            return True
+        else:
+            return False
 
 
 class User(UserMixin, db.Model):
@@ -61,6 +65,7 @@ class User(UserMixin, db.Model):
 
     def change_password(self, newpasswd):
         self.pwhash = generate_password_hash(newpasswd)
+        return True
 
     def __repr__(self):
         return '<User {}>'.format(self.uname)

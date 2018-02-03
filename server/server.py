@@ -16,7 +16,7 @@ from urllib import parse
 import flask
 from flask import request
 import flask_login
-from flask_login import LoginManager, login_required
+from flask_login import LoginManager, login_required, current_user
 from flask_socketio import SocketIO
 from flask_mail import Message, Mail
 from itsdangerous import URLSafeTimedSerializer
@@ -27,7 +27,7 @@ eventlet.monkey_patch()
 
  To run: python server.py'''
 
-DEBUG = False
+DEBUG = True
 HOSTNAME = 'botfly.me'
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = 'payloads/'
@@ -109,11 +109,22 @@ def logout():
     return flask.redirect(flask.url_for('login'))
 
 
-@app.route("/profile")
+@app.route("/profile", methods=['GET', 'POST'])
 @login_required
 def change_password():
-    flask.flash("Under construction")
-    flask.redirect(flask.url_for('index'))
+    errs = []
+    if request.method == 'POST':
+        # Change password (redirect on success)
+        passwd1 = request.form.get('password1')
+        passwd2 = request.form.get('password2')
+        if passwd1 == passwd2:
+            UserManager.change_password(current_user.uname, passwd1)
+            flask.flash("Success!")
+            return flask.redirect(flask.url_for('index'))
+        else:
+            errs.append("Passwords do not match")
+
+    return flask.render_template('profile.html', username=current_user.uname, errors=errs)
 
 
 @app.route("/invite", methods=['GET', 'POST'])

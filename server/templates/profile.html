@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include 'header.html' %}
+<body>
+<div class="container container-table">
+    <div class="row vertical-center-row">
+        <div class="container col-lg-4 col-lg-offset-4 text-left">
+            <form action="/profile" method="POST">
+
+                <div class="form-group row">
+                    <div class="col-lg-10">
+                        <label class="form-control-label" for="inputusername" >Username:</label>
+                        <input type="text" name='username' value="{{ username }}" class="form-control form-control-danger" id="inputusername" readonly>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-lg-10">
+                        <label class="form-control-label" for="password-input" >Password:</label>
+                        <input class="form-control" name="password1" type="password" placeholder="Password" id="password-input" required>
+                        <input class="form-control" name="password2" type="password" placeholder="Verify Password" id="verify-password-input" required>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-lg-10">
+                        <button type="submit" class="btn btn-primary btn-block">Submit</button>
+                    </div>
+                </div>
+                {% if error %}
+                    <div class="form-group row alert alert-danger">
+                        <div class="col-lg-10">
+                            {{ error }}
+                        </div>
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
