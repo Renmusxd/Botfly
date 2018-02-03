@@ -21,8 +21,7 @@ except:
 
 __version__ = "1.2.1"
 
-HOST = '50.159.66.236'
-#HOST = 'localhost'
+HOST = 'renmusxd.ddns.net'
 PORT = 1708
 HOSTINFOFILE = '.host'
 IDFILE = '.id'
