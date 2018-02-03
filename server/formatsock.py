@@ -12,6 +12,7 @@ class FormatSocket:
         self.lastbytes = b''
         self.sendlock = threading.Lock()
         self.recvlock = threading.Lock()
+        self.datalock = threading.Lock()
 
     def send(self,msg):
         '''
@@ -86,3 +87,12 @@ class FormatSocket:
         # Allowed to close while recv, not while sending
         with self.sendlock:
             return self.sock.close()
+
+    def settimeout(self, timeout):
+        with self.sendlock:
+            with self.datalock:
+                self.sock.settimeout(timeout)
+
+    def gettimeout(self):
+        with self.datalock:
+            return self.sock.gettimeout()

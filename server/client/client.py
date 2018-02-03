@@ -22,7 +22,9 @@ except:
 __version__ = "1.2.1"
 
 # HOST = 'renmusxd.ddns.net'
-HOST = 'potatos.local'
+# HOST = 'potatos.local'
+HOST = 'localhost'
+
 PORT = 1708
 HOSTINFOFILE = '.host'
 IDFILE = '.id'
@@ -44,6 +46,7 @@ FILE_CLOSE = 'fclose'
 FILE_FILENAME = 'fname'
 CLIENT_STREAM = 'cstream'
 CLIENT_CLOSE = 'cclose'
+HEARTBEAT = 'heartbeat'
 
 PRINT_BUFFER = StringIO()
 
@@ -242,12 +245,14 @@ class ByteLockBundler:
             if filename not in self.fileclose:
                 self.fileclose.append(filename)
 
-    def getAndClear(self, bytesize=4096):
+    def getAndClear(self, bytesize=None):
         """
         Get items from data buffers up to bytesize total and clear
         :param bytesize: total number of bytes (approx x2) to be written
         :return: dataremaining (bool), datawritten (bool), writedict (dict)
         """
+        if bytesize is None:
+            bytesize = ByteLockBundler.PACKET_MAX_DAT
         specialremaining = False
         specs = {}
         with self.slock:
@@ -463,6 +468,9 @@ def serve(sock,user):
             try:
                 recvbytes = sock.format_recv()
                 recvjson = json.loads(recvbytes.decode('UTF-8'))
+
+                if HEARTBEAT in recvjson:
+                    bytelock.writeSpecial("heartbeat", b'\x01')
 
                 # Special LS command
                 if LS_JSON in recvjson:
