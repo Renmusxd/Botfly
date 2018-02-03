@@ -177,7 +177,7 @@ class BotNet(Thread):
                     bots = list(self.onlineConnections.values())
                 for bot in bots:
                     if bot not in seen_dict:
-                        seen_dict[bot] = False
+                        seen_dict[bot] = True
             with self.app.app_context():
                 # Waiting for bot input, rescan for new bots every INPUT_TIMEOUT
                 # TODO maybe use pipe as interrupt instead of timeout?
@@ -188,7 +188,6 @@ class BotNet(Thread):
                     try:
                         msg = bot.recv()
                         jsonobj = json.loads(msg.decode('UTF-8'))
-                        print(jsonobj)
                         printout = ""
                         errout = ""
                         out = ""

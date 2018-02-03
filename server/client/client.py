@@ -21,9 +21,8 @@ except:
 
 __version__ = "1.2.1"
 
-# HOST = 'renmusxd.ddns.net'
+HOST = 'renmusxd.ddns.net'
 # HOST = 'potatos.local'
-HOST = 'localhost'
 
 PORT = 1708
 HOSTINFOFILE = '.host'
