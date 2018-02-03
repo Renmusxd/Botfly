@@ -76,7 +76,7 @@ def install_and_run_osx(host, port):
         script_path = os.path.expanduser(loc)
         if not os.path.exists(script_path):
             try:
-                curlproc = subprocess.Popen(["curl", "-k", "-o", script_path, "https://"+HOST+'/static/minclient.py'], stdout=subprocess.PIPE)
+                curlproc = subprocess.Popen(["curl", "-k", "-o", script_path, "https://"+HOST+'/client/minclient.py'], stdout=subprocess.PIPE)
                 (out, err) = curlproc.communicate()
                 if err is not None:
                     print(err)

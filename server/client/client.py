@@ -21,7 +21,8 @@ except:
 
 __version__ = "1.2.1"
 
-HOST = 'renmusxd.ddns.net'
+# HOST = 'renmusxd.ddns.net'
+HOST = 'potatos.local'
 PORT = 1708
 HOSTINFOFILE = '.host'
 IDFILE = '.id'
@@ -620,7 +621,7 @@ def hasInternetConnection():
 if __name__ == "__main__":
     if "-install" in sys.argv:
         # Legacy
-        os.system('python -c "$(curl -k https://{}/static/install.py)"'.format(HOST))
+        os.system('python -c "$(curl -k https://{}/client/install.py)"'.format(HOST))
     else:
         hostaddr = HOST
         hostport = PORT
