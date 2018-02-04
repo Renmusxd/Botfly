@@ -323,7 +323,7 @@ def payload_launch():
             return "No payload specified", 404
 
     elif request.method == 'GET':
-        payloadstr = json.dumps(botnet.getPayloads())
+        payloadstr = json.dumps(botnet.getPayloads(), sort_keys=True)
         return flask.Response(payloadstr, status=200, mimetype='application/json')
 
     elif request.method == 'DELETE':
