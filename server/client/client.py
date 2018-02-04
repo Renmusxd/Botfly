@@ -625,6 +625,7 @@ def hasInternetConnection():
     except:
         return False
 
+
 if __name__ == "__main__":
     if "-install" in sys.argv:
         # Legacy
