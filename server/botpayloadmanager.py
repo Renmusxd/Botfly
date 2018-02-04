@@ -37,7 +37,7 @@ class BotNetPayloadManager:
             payloadlines = f.readlines()
         payloaddict = dict(name=payloadpath[len(self.payloadpath) + 1:-len(BotNetPayloadManager.PAYLOAD_EXT)],
                            description='',
-                           vars={})
+                           vars={}, varorder=[])
         try:
             if payloadlines[0].strip() in BotNetPayloadManager.COMMENT_DELIMIT:
                 for i in range(1, len(payloadlines)):
@@ -55,6 +55,7 @@ class BotNetPayloadManager:
                                 defval = var[eqindx + 1:].strip()
                                 var = var[:eqindx].strip()
                             payloaddict['vars'][var] = {'description': rhs}
+                            payloaddict['varorder'].append(var)
                             if defval is not None:
                                 payloaddict['vars'][var]['default_value'] = defval
                         else:
@@ -67,14 +68,15 @@ class BotNetPayloadManager:
     def getPayloadText(self, payload, args):
         if payload not in self.payloaddescriptions:
             return None
-        vars = self.payloaddescriptions[payload]['vars']
+        vardict = self.payloaddescriptions[payload]['vars']
+        varorder = self.payloaddescriptions[payload]['varorder']
         vartext = ""
-        for reqvar in vars.keys():
+        for reqvar in varorder:
             if reqvar in args and len(args[reqvar]) > 0:
                 arg = json.dumps(args[reqvar])
                 vartext += '{}={}\n'.format(reqvar, arg)
-            elif 'default_value' in vars[reqvar]:
-                arg = json.dumps(vars[reqvar]['default_value'])
+            elif 'default_value' in vardict[reqvar]:
+                arg = json.dumps(vardict[reqvar]['default_value'])
                 vartext += '{}={}\n'.format(reqvar, arg)
         with open(self.payloadfiles[payload], "r") as f:
             payloadtext = f.read()
